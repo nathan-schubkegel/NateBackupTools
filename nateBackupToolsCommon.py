@@ -15,7 +15,7 @@ def getFileHash(filePath):
     return hasher.hexdigest()
 
 def getHumanReadableSize(size):
-  for unit in ['bytes','KB','MB','GB','TB','PB','EB','ZB']:
+  for unit in ['Bytes','KB','MB','GB','TB','PB','EB','ZB']:
     if abs(size) < 1024.0:
       return "%.0f %s" % (size, unit)
     size /= 1024.0
