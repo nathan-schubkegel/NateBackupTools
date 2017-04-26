@@ -1,8 +1,4 @@
 import sys
-import os
-import ntpath
-import re
-import datetime
 import argparse
 import nateBackupToolsCommon as common
 import csv
@@ -28,20 +24,12 @@ args = argParser.parse_args()
 
 memRootDir = common.MemDirectory(name="", parentDir=None)
 filesByHash = {}
-fileNumber = 0
-timeOfLastUpdate = datetime.datetime.now()
+progress = common.ProgressPrinter("\rReading record {0}...")
 with open(args.hashFilePath, "rb") as inFile:
   csvIn = csv.reader(inFile, delimiter=' ', strict=True)
   for row in csvIn:
     # report progress once in a while
-    fileNumber += 1
-    if ( \
-        fileNumber % 500 == 0 and \
-        (datetime.datetime.now() - timeOfLastUpdate) > datetime.timedelta(microseconds=500000)
-       ) or (fileNumber == 1):
-      sys.stdout.write("\rReading record " + str(fileNumber) + "...")
-      sys.stdout.flush()
-      timeOfLastUpdate = datetime.datetime.now()
+    progress.report()
 
     # parse line data
     (fileHash, fileSize, fileSizeForHumes, filePath) = [row[0], row[1], row[2], row[3]]
@@ -60,9 +48,7 @@ with open(args.hashFilePath, "rb") as inFile:
       filesByHash[newFile.hash] = likeFiles
     likeFiles.append(newFile)
 
-sys.stdout.write("\rReading record " + str(fileNumber) + "...")
-sys.stdout.write("\n")
-sys.stdout.flush()
+progress.reportDone()
 
 class FilePile:
   def __init__(self, hash, files):
@@ -73,48 +59,29 @@ class FilePile:
 
 # enumerate all duplicate file piles, sorted first by size then path
 piles = []
-pileNumber = 0
-timeOfLastUpdate = datetime.datetime.now()
+progress = common.ProgressPrinter("\rProcessing unique record {0}...")
 for hash in filesByHash:
   files = filesByHash[hash]
 
   # report progress once in a while
-  pileNumber += 1
-  if ( \
-       pileNumber % 500 == 0 and \
-       (datetime.datetime.now() - timeOfLastUpdate) > datetime.timedelta(microseconds=500000) \
-     ) or (pileNumber == len(filesByHash)) \
-     or (pileNumber == 1):
-    sys.stdout.write("\rProcessing unique record " + str(pileNumber) + "...")
-    sys.stdout.flush()
-    timeOfLastUpdate = datetime.datetime.now()
+  progress.report()
 
   if len(files) > 1:
     files.sort(key=lambda y: y.getPath())
     pile = FilePile(hash, files)
     piles.append(pile)
 
-sys.stdout.write("\n")
-sys.stdout.flush()
+progress.reportDone()
 
-sys.stdout.write("Sorting duplicate file data...\n")
-sys.stdout.flush()
+print "Sorting duplicate file data..."
 piles.sort(key=lambda x: (x.firstFileSize, x.firstFilePath), reverse=True)
 
-pileNumber = 0
-timeOfLastUpdate = datetime.datetime.now()
+progress = common.ProgressPrinter("\rWriting duplicate file data {0}...")
 with open(args.outFilePath, "wb") as outFile:
   csvOut = csv.writer(outFile, delimiter=' ', strict=True)
   for filePile in piles:
-    pileNumber += 1
-    if ( \
-        pileNumber % 500 == 0 and \
-        (datetime.datetime.now() - timeOfLastUpdate) > datetime.timedelta(microseconds=500000)
-       ) or (pileNumber == len(piles)) \
-       or (pileNumber == 1):
-      sys.stdout.write("\rWriting duplicate file data " + str(pileNumber) + "...")
-      sys.stdout.flush()
-      timeOfLastUpdate = datetime.datetime.now()
+    # report progress once in a while
+    progress.report()
 
     # sanity check for hash collisions
     if not all(x.size == filePile.firstFileSize for x in filePile.files):
@@ -132,6 +99,5 @@ with open(args.outFilePath, "wb") as outFile:
     # write a blank row for readability
     csvOut.writerow([])
 
-sys.stdout.write("\n")
-sys.stdout.flush()
+progress.reportDone()
 print 'done'
