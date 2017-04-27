@@ -70,6 +70,7 @@ class MemDirectory:
     self.dirs = {}
     self.name = name
     self.dir = parentDir
+    self.size = 0
 
   def getPath(self):
     if self.dir == None:
@@ -82,6 +83,7 @@ class MemDirectory:
     if len(reversePathParts) == 1:
       newFile = MemFile(name, fileHash, fileSize, self)
       self.files[name] = newFile
+      self.addToSize(newFile.size)
       return newFile
     else:
       if name in self.dirs:
@@ -90,6 +92,11 @@ class MemDirectory:
         myDir = MemDirectory(name, self)
         self.dirs[name] = myDir
       return myDir.add(fileHash, fileSize, remainingParts)
+
+  def addToSize(self, extraSize):
+    self.size += extraSize
+    if self.dir is not None:
+      self.dir.addToSize(extraSize)
 
 deduplicatedStrings = {}
 def deduplicate(parts):
