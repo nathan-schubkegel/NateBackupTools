@@ -62,6 +62,7 @@ with open(args.hashFilePath, "rb") as inFile:
   
 progress.reportDone()
 
+stuffToIgnore2 = {}
 likeDirsByDir = {}
 progress2 = common.ProgressPrinter("\rProcessing folder {0}...")
 
@@ -73,10 +74,8 @@ def lookForDuplicateFolders(memDir):
 
   # report progress once in a while
   progress2.report()
-  print str(progress2.number) + " " + memDir.getPath()
 
   # get all other directories containing files like any of my files
-  #print "get all other directories containing files like any of my files"
   likeDirs = {}
   for fileName in memDir.files:
     file = memDir.files[fileName]
@@ -85,10 +84,12 @@ def lookForDuplicateFolders(memDir):
       if otherFile.dir != memDir and otherFile.dir is not None:
         likeDirs[otherFile.dir] = otherFile.dir
 
-  print str(progress2.number) + " " + memDir.getPath() + " had " + str(len(likeDirs)) + " like dirs"
+  # eliminate all other directories that have already been associated with some other folder
+  for likeDir in list(likeDirs):
+    if stuffToIgnore2.get(likeDir) is not None:
+      likeDirs.pop(likeDir)
 
   # only retain directories if at least 50% or more of both our files match
-  #print "only retain directories if at least 50% or more of both our files match"
   for likeDir in list(likeDirs):
     likeFileCount = 0
     filesToIgnore = {}
@@ -111,6 +112,10 @@ def lookForDuplicateFolders(memDir):
 
   # save results
   likeDirsByDir[memDir] = likeDirs
+
+  # do not associate these directories with other directories later
+  for likeDir in likeDirs:
+    stuffToIgnore2[likeDir] = likeDir
 
 # enumerate all folders looking for similar ones
 lookForDuplicateFolders(memRootDir)

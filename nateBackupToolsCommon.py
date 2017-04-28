@@ -111,21 +111,18 @@ def deduplicate(parts):
     i = i + 1
 
 class ProgressPrinter:
-  def __init__(self, messageFormat=None, countBeforeUpdate=500):
+  def __init__(self, messageFormat=None):
     self.number = 0
     self.timeOfLastUpdate = datetime.datetime.now()
     if messageFormat is None:
       self.messageFormat = "\rDoing thing {0}..."
     else:
       self.messageFormat = messageFormat
-    self.countBeforeUpdate = countBeforeUpdate
 
   def report(self):
     self.number += 1
-    if ( \
-        self.number % self.countBeforeUpdate == 0 and \
-        (datetime.datetime.now() - self.timeOfLastUpdate) > datetime.timedelta(microseconds=500000) \
-       ) or (self.number == 1):
+    if (datetime.datetime.now() - self.timeOfLastUpdate) > datetime.timedelta(microseconds=500000) \
+       or self.number == 1:
       sys.stdout.write(self.messageFormat.format(str(self.number)))
       sys.stdout.flush()
       self.timeOfLastUpdate = datetime.datetime.now()
