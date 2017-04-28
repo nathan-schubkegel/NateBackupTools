@@ -66,7 +66,8 @@ class MemFile:
 
 class MemDirectory:
   def __init__(self, name, parentDir):
-    self.files = {}
+    self.files = {} # by name
+    self.filesByHash = {} # value is list of files
     self.dirs = {}
     self.name = name
     self.dir = parentDir
@@ -83,6 +84,13 @@ class MemDirectory:
     if len(reversePathParts) == 1:
       newFile = MemFile(name, fileHash, fileSize, self)
       self.files[name] = newFile
+
+      pile = self.filesByHash.get(fileHash)
+      if pile is None:
+        pile = []
+        self.filesByHash[fileHash] = pile
+      pile.append(newFile)
+
       self.addToSize(newFile.size)
       return newFile
     else:

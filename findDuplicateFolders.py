@@ -62,7 +62,6 @@ with open(args.hashFilePath, "rb") as inFile:
   
 progress.reportDone()
 
-stuffToIgnore2 = {}
 likeDirsByDir = {}
 progress2 = common.ProgressPrinter("\rProcessing folder {0}...")
 
@@ -84,27 +83,15 @@ def lookForDuplicateFolders(memDir):
       if otherFile.dir != memDir and otherFile.dir is not None:
         likeDirs[otherFile.dir] = otherFile.dir
 
-  # eliminate all other directories that have already been associated with some other folder
-  for likeDir in list(likeDirs):
-    if stuffToIgnore2.get(likeDir) is not None:
-      likeDirs.pop(likeDir)
-
-  # only retain directories if at least 50% or more of both our files match
+  # only retain directories if at least 50% or more of either of our files match
   for likeDir in list(likeDirs):
     likeFileCount = 0
-    filesToIgnore = {}
-    for fileName in likeDir.files:
-      otherFile = likeDir.files[fileName]
-      likeFiles = filesByHash[otherFile.hash]
-      for likeFile in likeFiles:
-        if likeFile.dir == memDir \
-            and otherFile not in filesToIgnore \
-            and likeFile not in filesToIgnore:
-          likeFileCount += 1
-          filesToIgnore[likeFile] = likeFile
-          filesToIgnore[otherFile] = otherFile
-          break
-    if (likeFileCount < len(memDir.files) / 2) or (likeFileCount < len(likeDir.files) / 2):
+    for likeFileHash in likeDir.filesByHash:
+      if likeFileHash in memDir.filesByHash:
+        likeFileCount += min(len(memDir.filesByHash[likeFileHash]), len(likeDir.filesByHash[likeFileHash]))
+    
+    if likeFileCount == 0 or \
+        (likeFileCount < len(memDir.files) / 2) and (likeFileCount < len(likeDir.files) / 2):
       likeDirs.pop(likeDir, None)
 
   # add self to results so some later logic is simpler
@@ -112,10 +99,6 @@ def lookForDuplicateFolders(memDir):
 
   # save results
   likeDirsByDir[memDir] = likeDirs
-
-  # do not associate these directories with other directories later
-  for likeDir in likeDirs:
-    stuffToIgnore2[likeDir] = likeDir
 
 # enumerate all folders looking for similar ones
 lookForDuplicateFolders(memRootDir)
