@@ -2,3 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# ignore my developer-tom-foolery directory
+/stuff/
+
+# ignore test output folder
+/testResults_actual/

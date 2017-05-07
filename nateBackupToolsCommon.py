@@ -67,14 +67,19 @@ class MemFile:
 class MemDirectory:
   def __init__(self, name, parentDir):
     self.files = {} # by name
-    self.filesByHash = {} # value is list of files
+    self.filesByHash = {} # key is hash, value is list of files with that hash
     self.dirs = {}
     self.name = name
     self.dir = parentDir
     self.size = 0
+    self.sizeImmediateFilesOnly = 0
 
   def getPath(self):
+    # there's always a root MemDirectory with name = "" and dir = None
+    # so avoid printing that empty root name or a slash after it
     if self.dir == None:
+      return ""
+    if self.dir.dir == None:
       return self.name
     return self.dir.getPath() + '/' + self.name
 
@@ -92,13 +97,17 @@ class MemDirectory:
       pile.append(newFile)
 
       self.addToSize(newFile.size)
+      self.sizeImmediateFilesOnly += newFile.size
+
       return newFile
+
     else:
       if name in self.dirs:
         myDir = self.dirs[name]
       else:
         myDir = MemDirectory(name, self)
         self.dirs[name] = myDir
+
       return myDir.add(fileHash, fileSize, remainingParts)
 
   def addToSize(self, extraSize):

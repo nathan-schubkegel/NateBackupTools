@@ -1,0 +1,3 @@
+no other file matches this file
+(not even unique_file_at_root.txt)
+and it lives at the root directory

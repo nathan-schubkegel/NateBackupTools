@@ -1,0 +1,2 @@
+this file has the same name in folders a and b
+different contents in b than a

@@ -1,0 +1,18 @@
+parent left "123 MB" /big/fat/path1
+parent right "143 MB" /big/fat/path2
+summary files same "213 MB"
+summary files different "13 kb"
+summary files other left "13 MB" right "14 MB"
+file same "35 bytes" john.txt
+file same "28 bytes"
+"  " both steve.txt
+"  " left steve1.txt
+"  " left steve2.txt
+"  " right charlie.txt
+file different steve.txt
+"  " left "35 bytes"
+"  " right "235 KB"
+files other left "500 MB" right "300 MB"
+"  " left "35 bytes" steve.txt
+"  " left "35 bytes" McDonalds.txt
+"  " right "35 bytes" HappyGoLucky.txt
